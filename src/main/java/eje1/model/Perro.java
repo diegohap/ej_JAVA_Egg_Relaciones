@@ -1,16 +1,24 @@
-package ej1.model;
+package eje1.model;
 
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+
+@Builder
+@Getter
 public class Perro {
     private String nombre;
     private String raza;
     private int edad;
-    private String tamaño;
+    private String tamano;
+    private Boolean adoptado;
 
-    public Perro(String nombre, String raza, int edad, String tamaño) {
+    public Perro(String nombre, String raza, int edad, String tamano) {
         this.nombre = nombre;
         this.raza = raza;
         this.edad = edad;
-        this.tamaño = tamaño;
+        this.tamano = tamano;
+        this.adoptado = false;
     }
 
     @Override
@@ -19,7 +27,7 @@ public class Perro {
                 "nombre='" + nombre + '\'' +
                 ", raza='" + raza + '\'' +
                 ", edad=" + edad +
-                ", tamaño='" + tamaño + '\'' +
+                ", tamano='" + tamano + '\'' +
                 '}';
     }
 }

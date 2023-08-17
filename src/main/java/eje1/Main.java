@@ -1,4 +1,4 @@
-package ej1;
+package eje1;
 
 import ej1.model.Perro;
 import ej1.model.Persona;
@@ -6,7 +6,7 @@ import ej1.model.Persona;
 public class Main {
     public static void main(String[] args) {
         Perro perro1 = new Perro("Firulais", "Labrador", 3, "Mediano");
-        Perro perro2 = new Perro("Luna", "Poodle", 2, "Pequeño");
+        Perro perro2 = new Perro("Luna", "Poodle", 2, "Pequeno");
 
         Persona persona1 = new Persona("Juan", "Perez", 30, "12345678");
         Persona persona2 = new Persona("Maria", "Lopez", 25, "87654321");
