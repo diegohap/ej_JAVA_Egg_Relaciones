@@ -5,12 +5,12 @@ import eje3.model.Poliza;
 import eje3.model.Vehiculo;
 import eje3.service.ClienteService;
 import eje3.service.PolizaService;
-import eje3.service.VehículoService;
+import eje3.service.VehiculoService;
 
 import java.util.*;
 
 public class Initialization {
-    public static void initialize(ClienteService cs, VehículoService vs, PolizaService ps){
+    public static void initialize(ClienteService cs, VehiculoService vs, PolizaService ps){
         Cliente c1 = new Cliente("Clara", "Martel", "987654321", "claramart@email.com", "Colon 312", "3513555987");
         ArrayList<Cliente> clientes = Clientes.CLIENTES;
         clientes.add(c1);
@@ -39,8 +39,8 @@ public class Initialization {
                                Collections.singletonList(Vehiculos.V1),
                                Cuotas.CUOTAS_2_PAGAS_1_IMPAGA_VENCIDA
                 );
-        System.out.println(p1);
+        //System.out.println(p1);
         ps.add(p1);
-        ps.getAll().get().forEach(System.out::println);
+        //ps.getAll().get().forEach(System.out::println);
     }
 }

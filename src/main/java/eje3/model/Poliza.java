@@ -21,6 +21,6 @@ public class Poliza {
     private Double montoMaximoGranizo;
     private String tipoCobertura;
     private Cliente cliente;
-    private List<Vehiculo> vehiculo;
+    private Vehiculo vehiculo;
     private List<Cuota> cuotas;
 }

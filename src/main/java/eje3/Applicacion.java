@@ -6,22 +6,22 @@ import eje3.model.Vehiculo;
 import eje3.service.ClienteService;
 import eje3.usecases.Initialization;
 import eje3.service.PolizaService;
-import eje3.service.VehículoService;
+import eje3.service.VehiculoService;
 
 import java.util.*;
 
 public class Applicacion {
     private Integer op;
-    private final int salir = 30;
+    private final int SALIR = 30;
     private Scanner t = new Scanner(System.in).useDelimiter("\n");
     PolizaService ps = PolizaService.getInstance(null);
-    VehículoService vs = VehículoService.getInstance(null);
+    VehiculoService vs = VehiculoService.getInstance(null);
     ClienteService cs = ClienteService.getInstance(null);
 
     public Applicacion(){
         Initialization.initialize(cs, vs, ps);
         op=0;
-        while(op != salir){
+        while(op != SALIR){
             menu();
             System.out.print("opcion --> ");
             op = t.nextInt();
@@ -44,46 +44,47 @@ public class Applicacion {
                 listarClientes();
             }
             case 5 -> {
-                mostrarClientePorId();
+                buscarClientePorId();
             }
             case 6 -> {
-                mostrarClientePorApellido();
+                buscarClientePorApellido(false);
             }
             case 7 -> {
                 listarVehiculos();
             }
             case 8 -> {
-                mostrarVehiculoPorId();
+                mostrarContenidoVehiculoABuscarInteger("id");
             }
             case 9 -> {
-                mostrarVehiculoPor("marca", t.next());
+                mostrarContenidoVehiculoABuscarString("marca");
             }
             case 10 -> {
-                mostrarVehiculoPor("modelo", t.next());
+                mostrarContenidoVehiculoABuscarString("modelo");
             }
             case 11 -> {
-                mostrarVehiculoPor("anio", t.nextInt());
+                mostrarContenidoVehiculoABuscarInteger("anio");
             }
             case 12 -> {
-                mostrarVehiculoPor("numeroMotor", t.next());
+                mostrarContenidoVehiculoABuscarString("numeroMotor");
             }
             case 13 -> {
-                mostrarVehiculoPor("chasis", t.next());
+                mostrarContenidoVehiculoABuscarString("chasis");
             }
             case 14 -> {
-                mostrarVehiculoPor("tipo", t.next());
+                mostrarContenidoVehiculoABuscarString("tipo");
             }
             case 15 -> {
                 listarPolizas();
             }
             case 16 -> {
                 System.out.print("ingrese el numero de poliza a buscar --> ");
-                mostrarPolizaPorNumeroPoliza(t.nextInt());
+                buscarPolizaPorNumeroPoliza(t.nextInt());
             }
+            case SALIR -> System.out.println("Fin de programa...");
         }
     }
 
-    private void creaNuevoCliente(){
+    private Cliente creaNuevoCliente(){
         System.out.println("Ingrese los datos del nuevo cliente:");
         Cliente cliente = new Cliente();
         System.out.print("Nombre: ");
@@ -99,8 +100,9 @@ public class Applicacion {
         System.out.print("Telefono: ");
         cliente.setTelefono(t.next());
         cs.add(cliente);
+        return cliente;
     }
-    private void crearNuevoVehiculo(){
+    private Vehiculo crearNuevoVehiculo(){
         System.out.println("Ingrese los datos del nuevo vehiculo:");
         Vehiculo vehiculo = new Vehiculo();
         System.out.print("Modelo: ");
@@ -118,13 +120,14 @@ public class Applicacion {
         System.out.print("Tipo: ");
         vehiculo.setTipo(t.next());
         vs.add(vehiculo);
+        return vehiculo;
     }
-    private void crearNuevaPoliza(){
+    private Poliza crearNuevaPoliza(){
         System.out.println("Ingrese los datos de la nueva Poliza:");
         Integer numPol = t.nextInt();
-        Optional<Poliza> oPoliza = mostrarPolizaPorNumeroPoliza(numPol);
-        if(oPoliza.isEmpty())
-            return;
+        Optional<Poliza> oPoliza = buscarPolizaPorNumeroPoliza(numPol);
+        if(oPoliza.isPresent())
+            oPoliza.get();
         Poliza poliza = new Poliza();
         System.out.print("Numero de Poliza");
         poliza.setNumeroPoliza(numPol);
@@ -147,7 +150,22 @@ public class Applicacion {
         poliza.setMontoMaximoGranizo(t.nextDouble());
         System.out.print("Tipo de covertura: ");
         poliza.setTipoCobertura(t.next());
+        System.out.println("Seleccione un cliente por ID");
+        Optional<Cliente> cliente = Optional.empty();
+        listarClientes();
+        do {
+            cliente = buscarClientePorId();
+        }while (cliente.isEmpty());
+        poliza.setCliente(cliente.get());
+        Optional<Vehiculo> vehiculo = Optional.empty();
+        listarClientes();
+        do {
+            System.out.println("Seleccione un vehiculo por ID");
+            vehiculo = buscarVehiculoPorId(t.nextInt());
+        }while (vehiculo.isEmpty());
+        poliza.setVehiculo(vehiculo.get());
         // FALTA TERMINAR
+        return poliza;
     }
     private void listarClientes(){
         Optional<List<Cliente>> oClientes = cs.getAll();
@@ -156,7 +174,7 @@ public class Applicacion {
         else
             oClientes.get().forEach(System.out::println);
     }
-    private Optional<Cliente> mostrarClientePorId(){
+    private Optional<Cliente> buscarClientePorId(){
         System.out.print("ingrese el ID del cliente a buscar --> ");
         Optional<List<Cliente>> oClientes = cs.findByAttributeName("id", t.nextInt());
         Cliente c;
@@ -169,7 +187,7 @@ public class Applicacion {
         }
         return Optional.empty();
     }
-    private Optional<Cliente> mostrarClientePorApellido(){
+    private Optional<Cliente> buscarClientePorApellido(Boolean isSelectable){
         System.out.print("ingrese el apellido a buscar --> ");
         Optional<List<Cliente>> oClientes = cs.findByAttributeName("apellido", t.next());
         List<Cliente> clientes;
@@ -177,9 +195,11 @@ public class Applicacion {
             System.out.println("cliente no encontrado");
         else {
             clientes = new ArrayList<>(oClientes.get());
-            if(clientes.size() > 1){
-                System.out.println("elija un cliente por id");
-                return Optional.of(cs.findByAttributeName("id", t.nextInt()).get().get(0));
+            if (isSelectable) {
+                if(clientes.size() > 1){
+                    System.out.println("elija un cliente por id");
+                    return Optional.of(cs.findByAttributeName("id", t.nextInt()).get().get(0));
+                }
             }
             return Optional.of(clientes.get(0));
         }
@@ -192,11 +212,11 @@ public class Applicacion {
         else
             oVehiculos.get().forEach(System.out::println);
     }
-    private Optional<Vehiculo> mostrarVehiculoPorId(){
-        Optional<List<Vehiculo>> oVehiculo = vs.findByAttributeName("id", t.nextInt());
+    private Optional<Vehiculo> buscarVehiculoPorId(Integer id){
+        Optional<List<Vehiculo>> oVehiculo = vs.findByAttributeName("id", id);
         Vehiculo v;
         if (oVehiculo.isEmpty())
-            System.out.println("cliente no encontrado");
+            System.out.println("cliente/s no encontrado/s");
         else {
             v =oVehiculo.get().get(0);
             System.out.println(v);
@@ -204,16 +224,19 @@ public class Applicacion {
         }
         return Optional.empty();
     }
-    private Optional<Vehiculo> mostrarVehiculoPor(String attrib, Object value){
+    private Optional<Vehiculo> buscarVehiculoPor(String attrib, Object value, Boolean isSelectable){
         Optional<List<Vehiculo>> oVehiculo = vs.findByAttributeName(attrib, value);
         List<Vehiculo> vehiculo;
         if (oVehiculo.isEmpty())
-            System.out.println("cliente no encontrado");
+            System.out.println("vehiculo/s no encontrado/s");
         else {
             vehiculo = new ArrayList<>(oVehiculo.get());
-            if(vehiculo.size() > 1){
-                System.out.println("elija un vehiculo por id");
-                return Optional.of(vs.findByAttributeName("id", t.nextInt()).get().get(0));
+            if (isSelectable) {
+                if(vehiculo.size() > 1){
+                    vehiculo.forEach(System.out::println);
+                    System.out.println("elija un vehiculo por id");
+                    return Optional.of(vs.findByAttributeName("id", t.nextInt()).get().get(0));
+                }
             }
             return Optional.of(vehiculo.get(0));
         }
@@ -226,11 +249,11 @@ public class Applicacion {
         else
             oPolizas.get().forEach(System.out::println);
     }
-    private Optional<Poliza> mostrarPolizaPorNumeroPoliza(Object value){
+    private Optional<Poliza> buscarPolizaPorNumeroPoliza(Object value){
         Optional<List<Poliza>> oPolizas = ps.findByAttributeName("numeroPoliza", value);
         Poliza p;
         if (oPolizas.isEmpty())
-            System.out.println("cliente no encontrado");
+            System.out.println("poliza/s no encontrado/s");
         else {
             p =oPolizas.get().get(0);
             System.out.println(p);
@@ -239,24 +262,37 @@ public class Applicacion {
         return Optional.empty();
     }
 
+    public void mostrarContenidoVehiculoABuscarString(String attrib){
+        System.out.println("ingrese " + attrib + " a buscar");
+        Optional<Vehiculo> oVehiculo = buscarVehiculoPor(attrib, t.next(), false);
+        oVehiculo.ifPresent(System.out::println);
+    }
+    public void mostrarContenidoVehiculoABuscarInteger(String attrib){
+        System.out.println("ingrese " + attrib + " a buscar");
+        Optional<Vehiculo> oVehiculo = buscarVehiculoPor(attrib, t.nextInt(), false);
+        oVehiculo.ifPresent(System.out::println);
+    }
+
 
     public void menu(){
-        String m = "---   MENU DE OPCIONES   ---" +
-                "1. Crear nuevo cliente" +
-                "2. Crear nuevo vehiculo" +
-                "3. Crear nueva poliza" +
-                "4. Listar Clientes" +
-                "5. Buscar Cliente por ID" +
-                "6. Buscar Cliente por Apellido" +
-                "7. Listar Vehículos" +
-                "8. Buscar Vehículo por ID" +
-                "9. Buscar Vehículo por Marca" +
-                "10. Buscar Vehículo por Modelo" +
-                "11. Buscar Vehículo por anio" +
-                "12. Buscar Vehículo por numero de motor" +
-                "13. Buscar Vehículo por numero de chasis" +
-                "14. Buscar Vehículo por tipo" +
-                "15. Listar Polizas" +
-                "16. Buscar Poliza por numero de poliza";
+        String m = "---   MENU DE OPCIONES   ---\n" +
+                "1. Crear nuevo cliente\n" +
+                "2. Crear nuevo vehiculo\n" +
+                "3. Crear nueva poliza\n" +
+                "4. Listar Clientes\n" +
+                "5. Buscar Cliente por ID\n" +
+                "6. Buscar Cliente por Apellido\n" +
+                "7. Listar Vehículos\n" +
+                "8. Buscar Vehículo por ID\n" +
+                "9. Buscar Vehículo por Marca\n" +
+                "10. Buscar Vehículo por Modelo\n" +
+                "11. Buscar Vehículo por anio\n" +
+                "12. Buscar Vehículo por numero de motor\n" +
+                "13. Buscar Vehículo por numero de chasis\n" +
+                "14. Buscar Vehículo por tipo\n" +
+                "15. Listar Polizas\n" +
+                "16. Buscar Poliza por numero de poliza\n" +
+                SALIR+". SALIR\n";
+        System.out.println(m);
     }
 }

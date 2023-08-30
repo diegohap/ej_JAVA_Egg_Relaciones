@@ -41,10 +41,15 @@ public abstract class Service<T> {
         List<T> filteredItemList = new ArrayList<T>();
         try {
             for (T item : t) {
-                String getterMethodName = "get" + attributeName.substring(0,1).toUpperCase() + attributeName.substring(1).toLowerCase();
+                String getterMethodName = "get" + attributeName.substring(0,1).toUpperCase() + attributeName.substring(1);
                 Object value = item.getClass().getMethod(getterMethodName).invoke(item);
-                if(value.equals(attributeValue))
+                if (value instanceof String) {
+                    if (((String) value).equalsIgnoreCase((String) attributeValue)) {
+                        filteredItemList.add(item);
+                    }
+                } else if (value.equals(attributeValue)) {
                     filteredItemList.add(item);
+                }
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
